@@ -1,103 +1,86 @@
 const express = require("express");
 const cors = require("cors");
+const { getAllItems, addItem, updateItem, deleteItem, normalizeItem } = require("./db");
 
 const app = express();
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
 
-app.use(cors());
+app.use(
+  cors({
+    origin: true,
+    credentials: true,
+  })
+);
 app.use(express.json());
 
-let items = [
-  { id: 1, name: "Milk", quantity: 2, category: "Groceries", purchased: false },
-  { id: 2, name: "Eggs", quantity: 1, category: "Groceries", purchased: true },
-];
-
-let nextId = 3;
-
-function normalizeItem(payload = {}) {
-  const rawName = typeof payload.name === "string" ? payload.name.trim() : "";
-  const quantity = Number(payload.quantity);
-  const rawCategory = typeof payload.category === "string" ? payload.category.trim() : "";
-
-  return {
-    name: rawName,
-    quantity: Number.isFinite(quantity) ? quantity : 0,
-    category: rawCategory,
-    purchased: Boolean(payload.purchased),
-  };
-}
-
-app.get("/api/items", (req, res) => {
-  res.json(items);
+app.get("/api/items", async (req, res) => {
+  try {
+    const items = await getAllItems();
+    res.json(items);
+  } catch (error) {
+    res.status(500).json({ message: "Failed to load items." });
+  }
 });
 
-app.post("/api/items", (req, res) => {
-  const { name, quantity, category, purchased } = normalizeItem(req.body);
+app.post("/api/items", async (req, res) => {
+  try {
+    const normalized = normalizeItem(req.body);
 
-  if (!name) {
-    return res.status(400).json({ message: "Product name is required." });
+    if (!normalized.name) {
+      return res.status(400).json({ message: "Product name is required." });
+    }
+
+    if (!Number.isFinite(normalized.quantity) || normalized.quantity <= 0) {
+      return res.status(400).json({ message: "Quantity must be greater than 0." });
+    }
+
+    const newItem = await addItem(normalized);
+    return res.status(201).json(newItem);
+  } catch (error) {
+    return res.status(400).json({ message: error.message || "Unable to create item." });
   }
-
-  if (!Number.isFinite(quantity) || quantity <= 0) {
-    return res.status(400).json({ message: "Quantity must be greater than 0." });
-  }
-
-  const newItem = {
-    id: nextId,
-    name,
-    quantity,
-    category,
-    purchased: Boolean(purchased),
-  };
-
-  nextId += 1;
-  items.push(newItem);
-
-  res.status(201).json(newItem);
 });
 
-app.put("/api/items/:id", (req, res) => {
-  const itemId = Number(req.params.id);
-  const itemIndex = items.findIndex((item) => item.id === itemId);
+app.put("/api/items/:id", async (req, res) => {
+  try {
+    const itemId = Number(req.params.id);
+    const normalized = normalizeItem(req.body);
 
-  if (itemIndex === -1) {
-    return res.status(404).json({ message: "Item not found." });
+    if (!normalized.name) {
+      return res.status(400).json({ message: "Product name is required." });
+    }
+
+    if (!Number.isFinite(normalized.quantity) || normalized.quantity <= 0) {
+      return res.status(400).json({ message: "Quantity must be greater than 0." });
+    }
+
+    const updated = await updateItem(itemId, normalized);
+
+    if (!updated) {
+      return res.status(404).json({ message: "Item not found." });
+    }
+
+    return res.json(updated);
+  } catch (error) {
+    return res.status(400).json({ message: error.message || "Unable to update item." });
   }
-
-  const { name, quantity, category, purchased } = normalizeItem(req.body);
-
-  if (!name) {
-    return res.status(400).json({ message: "Product name is required." });
-  }
-
-  if (!Number.isFinite(quantity) || quantity <= 0) {
-    return res.status(400).json({ message: "Quantity must be greater than 0." });
-  }
-
-  items[itemIndex] = {
-    ...items[itemIndex],
-    name,
-    quantity,
-    category,
-    purchased: Boolean(purchased),
-  };
-
-  res.json(items[itemIndex]);
 });
 
-app.delete("/api/items/:id", (req, res) => {
-  const itemId = Number(req.params.id);
-  const originalLength = items.length;
+app.delete("/api/items/:id", async (req, res) => {
+  try {
+    const itemId = Number(req.params.id);
+    const removed = await deleteItem(itemId);
 
-  items = items.filter((item) => item.id !== itemId);
+    if (!removed) {
+      return res.status(404).json({ message: "Item not found." });
+    }
 
-  if (items.length === originalLength) {
-    return res.status(404).json({ message: "Item not found." });
+    return res.status(204).send();
+  } catch (error) {
+    return res.status(500).json({ message: "Unable to delete item." });
   }
-
-  res.status(204).send();
 });
 
 app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });
