@@ -1,44 +1,56 @@
 # Mini Shopping App
 
-A small full-stack shopping list app built with React + Vite on the frontend and Express on the backend. It supports adding, editing, deleting, filtering, and marking items as purchased.
+A premium full-stack shopping list app built with React + Vite on the frontend and Express + SQLite on the backend. It supports adding, editing, deleting, filtering, and marking items as purchased.
 
 ## Features
-- Add new shopping items
-- Edit existing items
-- Delete items
+- Add shopping items with validation
+- Edit existing item details
+- Delete items from the list
 - Mark items as purchased or pending
-- Filter by all, pending, and purchased
-- Validation for empty product names and invalid quantities
-- Local persistence on the frontend
-- Premium dark luxury UI
+- Filter items by all, pending, and purchased
+- Real backend persistence with SQLite
+- Premium dark luxury dashboard UI
+- Production-friendly frontend/backend configuration
 
-## Project structure
+## Tech Stack
+- React
+- Vite
+- Express
+- Node.js
+- SQLite
+- CSS
+
+## Project Structure
 
 ```text
 mini-shopping-app/
 ├── backend/
+│   ├── data/
+│   ├── db.js
 │   ├── server.js
+│   ├── server.test.js
 │   ├── package.json
-│   └── node_modules/
+│   └── .env.example
 ├── frontend/
 │   ├── src/
 │   ├── public/
 │   ├── package.json
 │   ├── vite.config.js
-│   └── node_modules/
+│   ├── .env.example
+│   └── dist/
 ├── .gitignore
 ├── README.md
-└── package.json
+└── .git/
 ```
 
 ## Prerequisites
 - Node.js 18+
 - npm
+- Git
 
-## Run locally on Windows
+## Run Locally on Windows
 
-1. Open PowerShell in the project root.
-2. Start the backend:
+1. Start the backend:
 
 ```powershell
 cd C:\Users\aarav\Downloads\ReactApp\mini-shopping-app\backend
@@ -46,7 +58,7 @@ npm install
 node server.js
 ```
 
-3. In a second PowerShell window, start the frontend:
+2. In a second terminal, start the frontend:
 
 ```powershell
 cd C:\Users\aarav\Downloads\ReactApp\mini-shopping-app\frontend
@@ -54,19 +66,19 @@ npm install
 npm run dev
 ```
 
-4. Open the app in your browser:
+3. Open the app in your browser:
 
 ```text
 http://localhost:5173/
 ```
 
-The backend API will run at:
+The backend API runs at:
 
 ```text
 http://localhost:5000/api/items
 ```
 
-## Production build
+## Production Build
 
 To build the frontend for production:
 
@@ -75,22 +87,52 @@ cd C:\Users\aarav\Downloads\ReactApp\mini-shopping-app\frontend
 npm run build
 ```
 
-## Tech stack
-- React
-- Vite
-- Express
-- Node.js
-- CSS
+## Backend Testing
+
+```powershell
+cd C:\Users\aarav\Downloads\ReactApp\mini-shopping-app\backend
+npm test
+```
+
+## Environment Variables
+
+Frontend example:
+
+```env
+VITE_API_URL=https://your-render-backend-url.onrender.com/api/items
+```
+
+Backend example:
+
+```env
+PORT=5000
+```
+
+## Deployment
+
+### Render (Backend)
+- Root directory: `mini-shopping-app/backend`
+- Build command: `npm install`
+- Start command: `node server.js`
+
+### Vercel (Frontend)
+- Root directory: `mini-shopping-app/frontend`
+- Build command: `npm run build`
+- Output directory: `dist`
+- Add env variable:
+
+```env
+VITE_API_URL=https://your-backend-url.onrender.com/api/items
+```
 
 ## Notes
-- The frontend stores data in localStorage for convenience.
-- The backend uses an in-memory array for the shopping list, so data resets when the server restarts.
+- Data persists in SQLite, so it survives server restarts.
+- This is suitable for demo, portfolio, or deployment-ready app use.
 
 ## GitHub
-This project is set up as a Git repository and can be pushed to your GitHub remote with:
 
 ```powershell
 git add .
-git commit -m "Style enhancement"
+git commit -m "Production ready"
 git push origin main
 ```
